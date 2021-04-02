@@ -1,0 +1,90 @@
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <dht11.h>
+#include <IRremote.h>
+#define SCREEN_WIDTH 128 // OLED piksel
+#define SCREEN_HEIGHT 32
+Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
+#define DHT11PIN 5                                          
+dht11 DHT11;                                                 
+int role=3;
+int buton=6;
+int buton_say;
+int buton_say2;  
+#define buton1 2169
+#define buton2 121
+IRrecv irrecv (2);
+decode_results results;
+void setup()
+{
+Serial.begin(9600);
+irrecv.enableIRIn();
+pinMode(role,OUTPUT);
+pinMode(buton,INPUT);
+Serial.begin(9600);
+ display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.display();
+  delay(100);
+  display.clearDisplay();
+  display.display();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(5,10);
+  display.print("MERHABA TR");
+  display.display(); 
+   delay(5000);
+}
+void ir() {                              //KUMANDA RÖLE KONTROLÜ
+if (irrecv.decode(&results)) {
+Serial.println(results.value);
+unsigned int value=results.value;
+switch(value){
+case buton1:
+digitalWrite(role,HIGH);
+break;
+case buton2:
+digitalWrite(role,LOW); 
+}
+irrecv.resume();
+}}  
+void isi(){                                   //DHT11 SICAKLIK-NEM + 128X32 OLED EKRAN
+display.clearDisplay();  
+display.setCursor(0,0);
+display.println("");
+int chk = DHT11.read(DHT11PIN);
+display.setCursor(25,2);
+display.print("N:");
+display.println((float)DHT11.humidity, 2);
+display.setCursor(25,18);
+display.print("C:");
+display.println((float)DHT11.temperature, 2);
+delay(10);
+display.display();
+}
+void ttp223b(){                                //KIZILÖTESİ DOKUNMATİK RÖLE KONTROLÜ
+if(digitalRead(buton))
+{
+buton_say++;
+buton_say2++;
+while(digitalRead(buton))
+isi();
+{}
+delay(100);
+if(buton_say==1)
+{
+digitalWrite(role,HIGH);
+buton_say=0; 
+{
+delay(100);
+if(buton_say2==2)
+{
+digitalWrite(role,LOW); 
+buton_say2=0;
+}}}}}
+void loop(){
+ir();
+ttp223b();
+isi();  
+}
